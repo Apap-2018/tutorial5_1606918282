@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	
+	<head>
+		<object th:include="fragments/fragment :: title" th:remove="tag"></object>
+		<object th:include="fragments/fragment :: css" th:remove="tag"></object>
+		<object th:include="fragments/fragment :: js" th:remove="tag"></object>
+	</head>
+	
+	<body>	
+		<nav th:replace="fragments/fragment :: navbar"></nav>	
+		<h2> Add Car </h2>
+		
+		<div id="dealerId" th:value="${id}"/></div>
+		
+		<form id="myForm">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Brand</th>
+						<th>Type</th>
+						<th>Price</th>
+						<th>Amount</th>
+						<th><div class="btn btn-primary" id="test"> Add </button></th>
+				     </tr>
+				 </thead>
+				 <tbody id="dynamic">
+				 	<tr class="cars" id="tr0">
+					 	<th><input type="text" name = "brand"/></th>
+					 	<th><input type="text" name = "type"/></th>
+					 	<th><input type="text" name = "price"/></th>
+					 	<th><input type="text" name = "amount"/></th>
+					 	<th><a class="btn btn-danger" id="delete" onclick="deleteRow(0)"> Delete </a></th>    	
+					</tr>				
+				 </tbody> 
+			</table>
+			<button type="submit"> Submit </button>
+		</form>
+			
+			
+	</body>
+	 <script src="https://code.jquery.com/jquery-3.3.1.js"
+	  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+	  crossorigin="anonymous"></script>
+	  <script>
+	  			const DEALERID = document.getElementById('dealerId').getAttribute('value');     
+	  
+	  			var counter = 1;
+				$( "#test" ).click(function() {
+					$( "#dynamic" ).append( '<tr' + ' class="cars" id="tr' + counter + '"' + '>' +
+						 	'<th><input type="text" name = "brand"/></th>'+
+						 	'<th><input type="text" name = "type"/></th>'+
+						 	'<th><input type="text" name = "price"/></th>'+
+						 	'<th><input type="text" name = "amount"/></th>' +
+						 	'<th><a class="btn btn-danger" onclick="deleteRow(' + counter +')" ' +'id="delete' + counter + '" ' + '> Delete </a></th>'+
+						 	'</tr>');
+					counter++;
+				});
+				
+				(function ($) {
+				    $.fn.serializeFormJSON = function () {
+
+				        var o = {};
+				        var a = this.serializeArray();
+				        $.each(a, function () {
+				            if (o[this.name]) {
+				                if (!o[this.name].push) {
+				                    o[this.name] = [o[this.name]];
+				                }
+				                o[this.name].push(this.value || '');
+				            } else {
+				                o[this.name] = this.value || '';
+				            }
+				        });
+				        return o;
+				    };
+				})(jQuery);
+
+				$('#myForm').submit(function (e) {
+					alert('Data berhasil disimpan');
+				    e.preventDefault();
+				    var data = $(this).serializeFormJSON();
+				    getCarsJson(data)
+				});
+				
+				
+				function getCarsJson(data){
+					var cars = [];
+					console.log(data);
+					var i;
+					if(Array.isArray(data.type)){
+						for (i = 0; i < data.brand.length; i++){
+							var car = {"type": data.type[i],"brand":data.brand[i],"price":data.price[i],"amount":data.amount[i]};
+							cars.push(car);
+							console.log(car);
+							console.log(cars);
+						}
+					} else {
+						cars.push(data);
+					}
+
+					cars = JSON.stringify({
+			            'cars' : cars 
+			        });
+					
+					console.log(cars);
+					
+					$.ajax({
+
+			            url:"/car/addCar/" + DEALERID,
+
+			            type: 'POST',
+
+			            data:  cars,             
+
+			            dataType: "html",          
+
+			            contentType: 'application/json',
+
+			            mimeType: 'application/json',
+
+			            success: function(data){ 
+
+			                console.log(data);
+			                window.location.href="/dealer/view?dealerId=" + DEALERID;
+
+			                return false;      
+			            } 
+			        });
+				}
+				
+				function deleteRow(deleteId){
+					var deleted = "#tr" + deleteId;
+					$(deleted).remove();
+				}
+	 </script>
+</html>
